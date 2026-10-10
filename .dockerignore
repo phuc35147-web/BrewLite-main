@@ -1,0 +1,16 @@
+.git
+.gitignore
+.superpowers
+.kilo
+deploy
+docs
+node_modules
+*/node_modules
+.next
+*/.next
+dist
+*/dist
+out
+*/out
+.env
+.env.*

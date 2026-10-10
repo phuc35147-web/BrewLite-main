@@ -1,0 +1,73 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: brewlite-sqlserver
+    restart: unless-stopped
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "${DB_PASSWORD:-BrewLite@2026!}"
+      MSSQL_PID: "Express"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$${MSSQL_SA_PASSWORD}\" -C -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    networks:
+      - brewlite-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: brewlite-backend
+    restart: unless-stopped
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    environment:
+      PORT: 3001
+      DB_SERVER: sqlserver
+      DB_PORT: 1433
+      DB_NAME: "${DB_NAME:-BrewLite}"
+      DB_USER: "${DB_USER:-sa}"
+      DB_PASSWORD: "${DB_PASSWORD:-BrewLite@2026!}"
+      DATABASE_URL: "sqlserver://sqlserver:1433;database=${DB_NAME:-BrewLite};user=${DB_USER:-sa};password=${DB_PASSWORD:-BrewLite@2026!};encrypt=true;trustServerCertificate=true"
+      JWT_SECRET: "${JWT_SECRET:-brewlite-super-secret-jwt-key-2026}"
+      JWT_EXPIRES_IN: "${JWT_EXPIRES_IN:-1d}"
+      MOCK_PAYMENT_FAIL: "${MOCK_PAYMENT_FAIL:-false}"
+    ports:
+      - "3001:3001"
+    networks:
+      - brewlite-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE: "${NEXT_PUBLIC_API_BASE:-http://localhost:3001}"
+    container_name: brewlite-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      PORT: 3000
+      HOSTNAME: "0.0.0.0"
+      NEXT_PUBLIC_API_BASE: "${NEXT_PUBLIC_API_BASE:-http://localhost:3001}"
+    ports:
+      - "3000:3000"
+    networks:
+      - brewlite-network
+
+networks:
+  brewlite-network:
+    driver: bridge
+
+volumes:
+  sqlserver_data:
+    driver: local
