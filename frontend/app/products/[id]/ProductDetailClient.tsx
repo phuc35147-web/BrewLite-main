@@ -22,10 +22,10 @@ export default function ProductDetailClient({ id }: { id: string }) {
   const [error, setError] = useState('');
   const [size, setSize] = useState('M');
   const [toppings, setToppings] = useState<string[]>([]);
+  const [sugar, setSugar] = useState('70%');
+  const [ice, setIce] = useState('70%');
   const [imgOk, setImgOk] = useState(true);
   const addItem = useCartStore((state) => state.addItem);
-  const cartItems = useCartStore((state) => state.items);
-  const cartItemCount = cartItems.reduce((total, item) => total + item.quantity, 0);
 
   useEffect(() => {
     let cancelled = false;
@@ -108,42 +108,17 @@ export default function ProductDetailClient({ id }: { id: string }) {
   const art = product ? artEmojis[(product.id - 1) % artEmojis.length] : '☕';
 
   return (
-    <main className="storefront product-page">
-      <header className="site-header">
-        <div className="nav-wrap">
-          <Link href="/" className="brand" aria-label="BrewLite trang chủ"><span className="brand-mark">b</span><span>Brew<span className="brand-light">Lite</span><small>COFFEE HOUSE</small></span></Link>
-          <nav className="main-nav" aria-label="Điều hướng chính"><Link href="/#menu" className="nav-active">Thực đơn</Link><Link href="/#about">Về BrewLite</Link><Link href="/#promise">Chất lượng</Link></nav>
-          <div className="nav-actions"><Link href="/login" className="login-link">Đăng nhập</Link><Link href="/cart" className="cart-link"><span aria-hidden="true">▱</span><span>Giỏ hàng</span>{cartItemCount > 0 && <b className="cart-count">{cartItemCount}</b>}</Link></div>
-        </div>
-      </header>
-
-      <div className="detail-wrap">
-        <div className="breadcrumbs"><Link href="/">Trang chủ</Link><span>›</span><Link href="/#menu">Thực đơn</Link><span>›</span><span>{loading ? 'Đang tải...' : product?.name || 'Sản phẩm'}</span></div>
-        {loading ? <div className="detail-loading"><span className="loading-cup">☕</span><p>Đang chuẩn bị sản phẩm cho bạn...</p></div> : error || !product ? <div className="detail-error"><span>☕</span><h1>Chưa tìm thấy món này</h1><p>{error || 'Sản phẩm hiện không khả dụng.'}</p><Link href="/" className="primary-cta">Quay lại thực đơn <span>↗</span></Link></div> : <>
-          <div className="detail-layout">
-            <section className={`detail-visual product-art-${artIndex}${product.imageUrl && imgOk ? ' has-photo' : ''}`} aria-label={`Hình minh họa ${product.name}`}>
-              {product.imageUrl && imgOk && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img className="detail-photo" src={product.imageUrl} alt={product.name} onError={() => setImgOk(false)} />
-              )}
-              <span className="detail-badge">BREWLITE SIGNATURE</span><span className="detail-orbit" /><span className="detail-drink">{art}</span><span className="detail-visual-name">BrewLite <b>·</b> fresh daily</span><span className="detail-visual-spark">✳</span>
-            </section>
-            <section className="detail-content">
-              <span className="eyebrow dark-eyebrow"><span className="eyebrow-line" /> PHA TƯƠI MỖI NGÀY</span>
-              <h1>{product.name}</h1>
-              <p className="detail-description">{product.description || 'Hương vị cân bằng, thơm ngon vừa đủ. Được pha mới mỗi ngày từ những nguyên liệu tuyển chọn.'}</p>
-              <div className="detail-price">{formatPrice(totalPrice)}<small>Đã bao gồm tùy chọn bạn chọn</small></div>
-              <div className="option-block"><div className="option-heading"><b>Chọn kích cỡ</b><span>Chọn 1</span></div><div className="size-options">{(['S', 'M', 'L'] as const).map((item) => <button key={item} type="button" onClick={() => setSize(item)} className={`size-option ${size === item ? 'selected' : ''}`} aria-pressed={size === item}><span className="size-name">{item}</span><span className="size-price">{sizeExtra[item] === 0 ? 'Tiêu chuẩn' : `+${formatPrice(sizeExtra[item])}`}</span>{size === item && <span className="size-check">✓</span>}</button>)}</div></div>
-              <div className="option-block toppings-block"><div className="option-heading"><b>Thêm topping</b><span>Tùy chọn</span></div><div className="topping-options">{Object.keys(toppingExtra).map((topping, index) => <label key={topping} className={`topping-option ${toppings.includes(topping) ? 'selected' : ''}`}><input type="checkbox" checked={toppings.includes(topping)} onChange={() => toggleTopping(topping)} /><span className="topping-icon">{index === 0 ? '◉' : '✧'}</span><span className="topping-name">{topping}<small>{index === 0 ? 'Dai mềm, ngọt dịu' : 'Béo mịn, thơm nhẹ'}</small></span><b>+{formatPrice(toppingExtra[topping])}</b></label>)}</div></div>
-              <div className="stock-note"><span className={product.stock > 0 ? 'stock-dot' : 'stock-dot sold-out'} />{product.stock > 0 ? `Còn ${product.stock} phần hôm nay` : 'Tạm hết hàng hôm nay'}</div>
-              <button type="button" onClick={handleAddToCart} disabled={product.stock <= 0} className="detail-add-button"><span>Thêm vào giỏ hàng</span><b>{formatPrice(totalPrice)}</b><span aria-hidden="true">↗</span></button>
-              <p className="fresh-note">✦ &nbsp; Pha mới sau khi bạn đặt — ngon nhất khi thưởng thức ngay.</p>
-            </section>
-          </div>
-          <section className="detail-perks"><div><span>✳</span><p><b>Nguyên liệu chọn lọc</b><small>Chỉ chọn điều tốt nhất</small></p></div><i /><div><span>♨</span><p><b>Pha mới theo đơn</b><small>Trọn vẹn hương vị</small></p></div><i /><div><span>♡</span><p><b>Chăm chút từng ly</b><small>Niềm vui trong từng ngụm</small></p></div></section>
-        </>}
-      </div>
-      <footer className="site-footer"><Link href="/" className="brand footer-brand"><span className="brand-mark">b</span><span>Brew<span className="brand-light">Lite</span><small>COFFEE HOUSE</small></span></Link><span>Cà phê ngon, ngày thêm vui.</span><span>© 2026 BrewLite Coffee House</span></footer>
+    <main className="container page-space product-detail-page">
+      <Link href="/#menu" className="back-link">‹ &nbsp; Quay lại thực đơn</Link>
+      {loading ? <div className="panel">Đang tải sản phẩm...</div> : error || !product ? <div className="panel"><h1>Chưa tìm thấy món này</h1><p>{error || 'Sản phẩm hiện không khả dụng.'}</p><Link href="/" className="btn btn-primary">Quay lại thực đơn</Link></div> : <div className="detail-grid">
+        <div className="detail-image">{product.imageUrl && imgOk ? /* eslint-disable-next-line @next/next/no-img-element */ <img src={product.imageUrl} alt={product.name} onError={() => setImgOk(false)} /> : <div className="detail-placeholder">{art}</div>}<span>Được yêu thích</span></div>
+        <section className="detail-info"><div className="eyebrow">TÙY CHỈNH THỨC UỐNG</div><h1>{product.name}</h1><p className="lead">{product.description || 'Cân bằng hương vị, pha mới mỗi ngày khi bạn đặt để giữ trọn hương vị.'}</p><div className="base-price"><span>Giá cơ bản</span><strong>{formatPrice(product.price)}</strong></div>
+          <div className="option"><div className="option-title"><h3>Chọn kích cỡ</h3><span>Bắt buộc</span></div><div className="option-list">{(['S','M','L'] as const).map((item) => <button key={item} type="button" onClick={() => setSize(item)} className={`choice ${size === item ? 'selected' : ''}`} aria-pressed={size === item}><b>{item}</b><span>{sizeExtra[item] ? `+${formatPrice(sizeExtra[item])}` : '+0đ'}</span></button>)}</div></div>
+          <div className="option"><div className="option-title"><h3>Thêm topping</h3><small>Tùy chọn · có thể chọn nhiều</small></div><div className="option-list">{Object.keys(toppingExtra).map((topping) => <button key={topping} type="button" className={`check-choice ${toppings.includes(topping) ? 'selected' : ''}`} aria-pressed={toppings.includes(topping)} onClick={() => toggleTopping(topping)}><span className="fake-check" aria-hidden="true">✓</span><b>{topping}</b><span>+{formatPrice(toppingExtra[topping])}</span></button>)}</div></div>
+          <div className="option two-options">{([['Lượng đường', sugar, setSugar], ['Lượng đá', ice, setIce]] as const).map(([title, value, setter]) => <div key={title}><div className="option-title"><h3>{title}</h3></div><div className="option-list">{['30%','50%','70%','100%'].map((level) => <button type="button" key={level} onClick={() => setter(level)} className={`pill ${value === level ? 'selected' : ''}`}>{level}</button>)}</div></div>)}</div>
+          <div className="detail-bottom"><div className="quantity"><button type="button" aria-label="Giảm số lượng">−</button><b>1</b><button type="button" aria-label="Tăng số lượng">+</button></div><button type="button" onClick={handleAddToCart} disabled={product.stock <= 0} className="btn btn-primary add-cart">♧ &nbsp; Thêm vào giỏ hàng <strong>{formatPrice(totalPrice)}</strong></button></div>
+        </section>
+      </div>}
     </main>
   );
 }

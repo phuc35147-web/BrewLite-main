@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCartStore } from '@/store/cartStore';
 import { apiUrl } from '@/lib/api';
@@ -14,6 +14,10 @@ export default function CheckoutPage() {
   const [method, setMethod] = useState<'WALLET' | 'CARD'>(
     'WALLET',
   );
+  const [customer, setCustomer] = useState<{ name?: string; email?: string } | null>(null);
+  useEffect(() => {
+    try { setCustomer(JSON.parse(localStorage.getItem('user') || 'null')); } catch { setCustomer(null); }
+  }, []);
 
   const totalPrice = items.reduce(
     (total, item) => total + item.price * item.quantity,
@@ -208,127 +212,16 @@ export default function CheckoutPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-100 px-6 py-10">
-      <div className="mx-auto max-w-3xl">
-        <Link
-          href="/cart"
-          className="text-amber-700 hover:underline"
-        >
-          ← Quay lại giỏ hàng
-        </Link>
-
-        <div className="mt-6 rounded-2xl bg-white p-8 shadow">
-          <h1 className="text-3xl font-bold text-amber-900">
-            Thanh toán
-          </h1>
-
-          <div className="mt-6">
-            <h2 className="text-lg font-semibold">
-              Tổng tiền
-            </h2>
-
-            <div className="mt-2 space-y-1 text-gray-600">
-              <div className="flex justify-between">
-                <span>Tạm tính</span>
-                <span>{formatPrice(orderInfo?.subtotal ?? totalPrice)}</span>
-              </div>
-
-              {discount > 0 && (
-                <div className="flex justify-between text-green-700">
-                  <span>Khuyến mãi {promo}</span>
-                  <span>-{formatPrice(discount)}</span>
-                </div>
-              )}
-            </div>
-
-            <p className="mt-2 text-3xl font-bold text-amber-700">
-              {formatPrice(payableTotal)}
-            </p>
-          </div>
-
-          <div className="mt-8">
-            <h2 className="text-lg font-semibold">
-              Mã khuyến mãi
-            </h2>
-
-            <input
-              type="text"
-              value={promoCode}
-              onChange={(e) => setPromoCode(e.target.value)}
-              disabled={orderLocked || isPaying}
-              placeholder="Nhập mã, ví dụ BREW10"
-              className="mt-3 w-full rounded-xl border p-3 uppercase disabled:bg-gray-100"
-            />
-
-            {orderLocked && (
-              <p className="mt-2 text-sm text-gray-500">
-                Đơn hàng đã được tạo, không thể đổi mã khuyến mãi.
-              </p>
-            )}
-
-            {!orderLocked && promo && !promoValid && (
-              <p className="mt-2 text-sm text-red-600">
-                Mã khuyến mãi không hợp lệ.
-              </p>
-            )}
-
-            {!orderLocked && promoValid && (
-              <p className="mt-2 text-sm text-green-700">
-                Đã áp dụng BREW10: giảm 10%, tối đa 20.000đ.
-              </p>
-            )}
-          </div>
-
-          <div className="mt-8">
-            <h2 className="text-lg font-semibold">
-              Phương thức thanh toán
-            </h2>
-
-            <div className="mt-4 space-y-3">
-              <label className="flex cursor-pointer items-center gap-3 rounded-xl border p-4">
-                <input
-                  type="radio"
-                  name="paymentMethod"
-                  value="WALLET"
-                  checked={method === 'WALLET'}
-                  onChange={() => setMethod('WALLET')}
-                />
-
-                <span>Ví điện tử</span>
-              </label>
-
-              <label className="flex cursor-pointer items-center gap-3 rounded-xl border p-4">
-                <input
-                  type="radio"
-                  name="paymentMethod"
-                  value="CARD"
-                  checked={method === 'CARD'}
-                  onChange={() => setMethod('CARD')}
-                />
-
-                <span>Thẻ ngân hàng</span>
-              </label>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={handlePayment}
-            disabled={isPaying || (!orderLocked && promo !== '' && !promoValid)}
-            className="mt-8 w-full rounded-xl bg-amber-700 px-6 py-4 text-lg font-semibold text-white transition hover:bg-amber-800 disabled:cursor-not-allowed disabled:bg-gray-400"
-          >
-            {isPaying
-              ? 'Đang xử lý thanh toán...'
-              : `Xác nhận thanh toán ${formatPrice(payableTotal)}`}
-          </button>
-
-          {error && (
-            <div className="mt-4 rounded-lg bg-red-100 p-4 text-red-700">
-              {error}
-            </div>
-          )}
-        </div>
-      </div>
+    <main className="container page-space checkout-page">
+      <div className="page-title"><div className="eyebrow">THANH TOÁN</div><h1>Hoàn tất đơn hàng</h1><p>Kiểm tra thông tin trước khi hoàn tất thanh toán mô phỏng.</p></div>
+      <div className="checkout-grid"><div className="checkout-main">
+        <section className="panel"><div className="panel-heading"><span className="step-number">1</span><h2>Thông tin khách hàng</h2><Link href="/account">Chỉnh sửa</Link></div><strong>{customer?.name || customer?.email || 'Khách BrewLite'}</strong><p>{customer?.email || 'Thông tin tài khoản sẽ được sử dụng cho đơn hàng.'}</p></section>
+        <section className="panel"><div className="panel-heading"><span className="step-number">2</span><h2>Nhận món</h2></div><div className="pickup"><strong>♧ &nbsp; Nhận tại quầy BrewLite</strong><p>12 Nguyễn Văn Bảo, Gò Vấp, TP.HCM</p><small>Dự kiến sẵn sàng trong 10–15 phút</small><span className="badge">ĐÃ CHỌN</span></div></section>
+        <section className="panel"><div className="panel-heading"><span className="step-number">3</span><h2>Phương thức thanh toán</h2></div><div className="payment-options"><button type="button" className={method === 'WALLET' ? 'selected' : ''} onClick={() => setMethod('WALLET')}><span>▣</span><b>Ví điện tử<small>MoMo, ZaloPay (mô phỏng)</small></b><i>{method === 'WALLET' ? '●' : '○'}</i></button><button type="button" className={method === 'CARD' ? 'selected' : ''} onClick={() => setMethod('CARD')}><span>▤</span><b>Thẻ ngân hàng<small>Visa, Mastercard, NAPAS</small></b><i>{method === 'CARD' ? '●' : '○'}</i></button></div><div className="simulate-note">Thanh toán trong đồ án chỉ là mô phỏng, không phát sinh giao dịch thật.</div></section>
+        <section className="panel"><label className="field"><b>Mã khuyến mãi</b><input type="text" value={promoCode} onChange={(e) => setPromoCode(e.target.value)} disabled={orderLocked || isPaying} placeholder="Nhập mã, ví dụ BREW10" />{orderLocked && <small>Đơn hàng đã được tạo, không thể đổi mã.</small>}{!orderLocked && promo && !promoValid && <small className="error-text">Mã khuyến mãi không hợp lệ.</small>}{!orderLocked && promoValid && <small className="success-text">Đã áp dụng BREW10: giảm 10%, tối đa 20.000đ.</small>}</label></section>
+        <section className="panel"><label className="field"><b>Ghi chú cho quán <small>(không bắt buộc)</small></b><textarea placeholder="Ví dụ: Ít ngọt hơn, mang đi..." /></label></section>
+      </div><aside className="summary checkout-summary"><h2>Đơn hàng của bạn</h2>{items.map((item, index) => <div className="checkout-item" key={`${item.productId}-${item.size}-${index}`}><div className="cart-placeholder">☕</div><span><b>{item.quantity} × {item.name}</b><small>Size {item.size}</small></span><strong>{formatPrice(item.price * item.quantity)}</strong></div>)}<div className="summary-row"><span>Tạm tính</span><strong>{formatPrice(orderInfo?.subtotal ?? totalPrice)}</strong></div>{discount > 0 && <div className="summary-row"><span>Giảm giá {promo}</span><strong>-{formatPrice(discount)}</strong></div>}<div className="summary-row"><span>Phí dịch vụ</span><strong>0đ</strong></div><div className="summary-total"><span>Tổng thanh toán</span><strong>{formatPrice(payableTotal)}</strong></div><button type="button" onClick={handlePayment} disabled={isPaying || (!orderLocked && promo !== '' && !promoValid)} className="btn btn-primary wide">{isPaying ? 'Đang xử lý...' : `Xác nhận thanh toán · ${formatPrice(payableTotal)}`}</button><Link className="continue-link" href="/cart">‹ &nbsp; Quay lại giỏ hàng</Link>{error && <div className="error-note">{error}</div>}</aside></div>
     </main>
   );
 }
+

@@ -199,30 +199,24 @@ export default function OrdersPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      <div className="mx-auto max-w-5xl px-4 py-8">
+    <main className="container page-space">
+      <div className="page-title"><div className="eyebrow">BREWLITE</div><h1>Lịch sử đơn hàng</h1><p>Xem lại các đơn hàng của bạn</p></div><div className="orders-content">
         <div className="mb-8 flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                Lịch sử đơn hàng
-              </h1>
-
-              <p className="mt-1 text-gray-500">
-                Xem lại các đơn hàng của bạn
-              </p>
+              <h2 className="orders-heading">Đơn hàng gần đây</h2>
             </div>
 
             <Link
               href="/"
-              className="rounded-lg border border-gray-300 bg-white px-4 py-2 hover:bg-gray-100"
+              className="btn btn-secondary"
             >
               Về trang chủ
             </Link>
           </div>
 
           {user ? (
-            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+            <div className="panel">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="font-semibold text-amber-900">
@@ -265,7 +259,7 @@ export default function OrdersPage() {
         </div>
 
         {loading && (
-          <div className="rounded-xl bg-white p-8 text-center shadow">
+          <div className="empty large">
             <p className="text-gray-500">
               Đang tải lịch sử đơn hàng...
             </p>
@@ -273,7 +267,7 @@ export default function OrdersPage() {
         )}
 
         {!loading && error && (
-          <div className="rounded-xl bg-white p-8 text-center shadow">
+          <div className="empty large">
             <p className="mb-4 text-red-600">
               {error}
             </p>

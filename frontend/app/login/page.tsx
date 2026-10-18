@@ -97,23 +97,22 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-100 px-6 py-10">
-      <div className="mx-auto max-w-md">
-        <div className="rounded-2xl bg-white p-8 shadow">
-          <h1 className="text-3xl font-bold text-amber-900">
+    <main className="container page-space">
+      <div className="auth-page"><section className="auth-art"><div className="eyebrow">BREWLITE COFFEE HOUSE</div><h2>Một ly ngon, một khoảnh khắc đáng nhớ.</h2><p>Cà phê pha mới mỗi ngày, dành riêng cho bạn.</p></section><div className="auth-content"><div className="auth-form">
+          <h1>
             {isRegister ? 'Đăng ký BrewLite' : 'Đăng nhập BrewLite'}
           </h1>
 
           {error && (
-            <div className="mt-4 rounded-lg bg-red-100 p-3 text-red-700">
+            <div className="error-note">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="mt-6 space-y-5">
+          <form onSubmit={handleSubmit} className="auth-fields">
             {isRegister && (
-              <div>
-                <label className="mb-2 block font-medium">
+              <div className="field">
+                <label>
                   Họ tên (không bắt buộc)
                 </label>
 
@@ -121,33 +120,33 @@ export default function LoginPage() {
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full rounded-lg border px-4 py-3"
+                  className="input-wrap"
                   placeholder="Nhập họ tên"
                 />
               </div>
             )}
 
-            <div>
-              <label className="mb-2 block font-medium">Email</label>
+              <div className="field">
+              <label>Email</label>
 
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-lg border px-4 py-3"
+                className="input-wrap"
                 placeholder="Nhập email"
                 required
               />
             </div>
 
-            <div>
-              <label className="mb-2 block font-medium">Mật khẩu</label>
+              <div className="field">
+              <label>Mật khẩu</label>
 
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-lg border px-4 py-3"
+                className="input-wrap"
                 placeholder={
                   isRegister ? 'Ít nhất 6 ký tự' : 'Nhập mật khẩu'
                 }
@@ -157,8 +156,8 @@ export default function LoginPage() {
             </div>
 
             {isRegister && (
-              <div>
-                <label className="mb-2 block font-medium">
+              <div className="field">
+                <label>
                   Nhập lại mật khẩu
                 </label>
 
@@ -166,7 +165,7 @@ export default function LoginPage() {
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full rounded-lg border px-4 py-3"
+                  className="input-wrap"
                   placeholder="Nhập lại mật khẩu"
                   required
                 />
@@ -176,7 +175,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-xl bg-amber-700 px-6 py-3 font-semibold text-white disabled:bg-gray-400"
+              className="btn btn-primary wide"
             >
               {loading
                 ? isRegister
@@ -188,18 +187,17 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-gray-600">
+          <p className="auth-switch">
             {isRegister ? 'Đã có tài khoản? ' : 'Chưa có tài khoản? '}
             <button
               type="button"
               onClick={() => switchMode(isRegister ? 'login' : 'register')}
-              className="font-semibold text-amber-700 hover:underline"
+              className="auth-toggle"
             >
               {isRegister ? 'Đăng nhập' : 'Đăng ký ngay'}
             </button>
           </p>
-        </div>
-      </div>
+        </div></div></div>
     </main>
   );
 }

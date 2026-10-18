@@ -38,11 +38,11 @@ export default function CheckoutSuccessPage() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-gray-100 px-6 py-10">
-      <div className="mx-auto max-w-xl rounded-2xl bg-white p-8 text-center shadow">
+    <main className="container page-space result-page">
+      <div className="panel result-card">
         <div className="mb-4 text-5xl">✅</div>
 
-        <h1 className="mb-2 text-3xl font-bold text-amber-900">
+        <h1>
           Đặt hàng thành công!
         </h1>
 
@@ -100,14 +100,14 @@ export default function CheckoutSuccessPage() {
         <div className="flex flex-wrap justify-center gap-3">
           <Link
             href="/"
-            className="rounded-lg bg-amber-700 px-5 py-3 text-white hover:bg-amber-800"
+            className="btn btn-primary"
           >
             Về trang chủ
           </Link>
 
           <Link
             href="/orders"
-            className="rounded-lg border border-gray-300 px-5 py-3 hover:bg-gray-100"
+            className="btn btn-secondary"
           >
             Lịch sử đơn hàng
           </Link>

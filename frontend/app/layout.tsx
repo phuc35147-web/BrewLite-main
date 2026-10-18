@@ -3,6 +3,9 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import type React from "react";
 import "./globals.css";
 import "./product-detail.css";
+import "./figma-ui.css";
+import "./homepage.css";
+import SiteChrome from "./SiteChrome";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin", "vietnamese"],
@@ -23,7 +26,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="vi" className={`h-full antialiased ${plusJakartaSans.variable}`}>
-      <body className="flex min-h-full flex-col font-sans">{children}</body>
+      <body className="flex min-h-full flex-col font-sans"><SiteChrome>{children}</SiteChrome></body>
     </html>
   );
 }

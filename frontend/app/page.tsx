@@ -1,98 +1,63 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useCartStore } from '@/store/cartStore';
 import { fetchJson, mockProducts, type Product } from '@/lib/api';
 
-interface User {
-  id: number;
-  email: string;
-  name?: string | null;
-  loyaltyPoints?: number;
-}
-
+type Category = 'Tất cả' | 'Cà phê' | 'Trà' | 'Đá xay';
+const categories: Category[] = ['Tất cả', 'Cà phê', 'Trà', 'Đá xay'];
 const productArt = ['☕', '🧊', '🥛', '🍑', '🍶', '🧂', '☕', '🍵', '🧋', '🍯', '🪷', '🍫'];
+const categoryFor = (name: string): Exclude<Category, 'Tất cả'> => {
+  if (/trà|matcha|sen/i.test(name)) return 'Trà';
+  if (/xay|smoothie|frappe/i.test(name)) return 'Đá xay';
+  return 'Cà phê';
+};
+const money = (price: number) => new Intl.NumberFormat('vi-VN').format(price) + 'đ';
 
 export default function Home() {
   const [products, setProducts] = useState<Product[]>(mockProducts);
-  const [user, setUser] = useState<User | null>(null);
-  const cartItems = useCartStore((state) => state.items);
-  const cartItemCount = cartItems.reduce((total, item) => total + item.quantity, 0);
+  const [category, setCategory] = useState<Category>('Tất cả');
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     fetchJson<Product[]>('/products', mockProducts).then(setProducts);
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
-      try {
-        setUser(JSON.parse(savedUser));
-      } catch {
-        localStorage.removeItem('user');
-        localStorage.removeItem('accessToken');
-      }
-    }
   }, []);
 
-  const formatPrice = (price: number) => new Intl.NumberFormat('vi-VN').format(price) + 'đ';
+  const filteredProducts = useMemo(() => products.filter((product) => {
+    const matchesCategory = category === 'Tất cả' || categoryFor(product.name) === category;
+    const matchesSearch = `${product.name} ${product.description ?? ''}`.toLocaleLowerCase('vi').includes(search.toLocaleLowerCase('vi'));
+    return matchesCategory && matchesSearch;
+  }), [category, products, search]);
 
   return (
-    <main className="storefront">
-      <header className="site-header">
-        <div className="nav-wrap">
-          <Link href="/" className="brand" aria-label="BrewLite trang chủ">
-            <span className="brand-mark">b</span><span>Brew<span className="brand-light">Lite</span><small>COFFEE HOUSE</small></span>
-          </Link>
-          <nav className="main-nav" aria-label="Điều hướng chính">
-            <a href="#menu" className="nav-active">Thực đơn</a>
-            <a href="#about">Về BrewLite</a>
-            <a href="#promise">Chất lượng</a>
-          </nav>
-          <div className="nav-actions">
-            {user ? <Link href="/account" className="account-link"><span className="avatar">{(user.name || user.email).charAt(0).toUpperCase()}</span><span>{user.name || 'Tài khoản'}</span></Link> : <Link href="/login" className="login-link">Đăng nhập</Link>}
-            <Link href="/cart" className="cart-link"><span aria-hidden="true">▱</span><span>Giỏ hàng</span>{cartItemCount > 0 && <b className="cart-count">{cartItemCount}</b>}</Link>
-          </div>
+    <main className="storefront fresh-storefront">
+      <section className="fresh-hero" id="about">
+        <div className="fresh-hero-copy">
+          <span className="fresh-eyebrow"><i /> CÀ PHÊ NGON · ĐẶT MÓN NHANH</span>
+          <h1>Một chút cà phê,<br /><em>thêm nhiều cảm hứng.</em></h1>
+          <p>Thưởng thức đồ uống yêu thích theo cách nhẹ nhàng hơn. Đặt trước, thanh toán không tiền mặt và nhận tại quầy.</p>
+          <div className="fresh-hero-actions"><a href="#menu" className="fresh-primary">Khám phá thực đơn <span>↗</span></a><span className="fresh-rating"><b>★★★★★</b> 4.9 từ khách hàng</span></div>
+          <div className="fresh-stats"><div><strong>8+</strong><span>Thức uống tuyển chọn</span></div><i /><div><strong>5 phút</strong><span>Đặt món dễ dàng</span></div></div>
         </div>
-      </header>
-
-      <section className="hero" id="about">
-        <div className="hero-copy">
-          <span className="eyebrow"><span className="eyebrow-line" /> CÀ PHÊ MỖI NGÀY, NIỀM VUI MỖI NGÀY</span>
-          <h1>Một chút <em>đậm đà,</em><br />cả ngày <em>thăng hoa.</em></h1>
-          <p>Từ những hạt cà phê được tuyển chọn đến ly cà phê pha bằng cả sự tận tâm — dành riêng cho nhịp sống của bạn.</p>
-          <div className="hero-actions"><a className="primary-cta" href="#menu">Khám phá thực đơn <span>↗</span></a><span className="hero-note"><span className="fresh-mark">✳</span> Được pha tươi mỗi ngày</span></div>
-          <div className="hero-stats"><div><strong>100%</strong><span>Hạt cà phê tuyển chọn</span></div><i /><div><strong>5 phút</strong><span>Giao tận tay nhanh chóng</span></div></div>
-        </div>
-        <div className="hero-art" aria-label="Ly cà phê BrewLite">
-          <div className="art-sun" /><span className="art-leaf leaf-one">✳</span><span className="art-leaf leaf-two">✳</span>
-          <div className="coffee-cup"><div className="cup-steam">∿</div><div className="cup-lid" /><div className="cup-body"><span className="cup-logo">b<span>.</span></span><small>BREWLITE</small></div><div className="cup-shadow" /></div>
-          <div className="art-caption"><span>01 / 04</span><i /><span>OUR SIGNATURE</span></div>
-          <div className="floating-note"><span>✦</span><div><b>Đậm vị nguyên bản</b><small>Chắt lọc trong từng giọt</small></div></div>
-        </div>
-        <div className="hero-bottom"><span>SCROLL TO DISCOVER</span><span className="scroll-mark">↓</span><span className="hero-index">01 — 04</span></div>
+        <div className="fresh-hero-image"><img src="https://images.unsplash.com/photo-1702293798770-d258d56e46a7?auto=format&fit=crop&w=1400&q=90" alt="Cà phê BrewLite trong ánh sáng ấm" /><div className="fresh-image-caption"><span>01</span><div><b>Rang mới mỗi ngày</b><small>Hạt tuyển chọn · Pha thủ công</small></div></div><span className="fresh-image-label">BREWLITE · FRESH DAILY</span></div>
       </section>
 
-      <section className="promise-strip" id="promise"><div><span>✳</span><p><b>Hạt tuyển chọn</b><small>Chất lượng từ nguồn</small></p></div><i /><div><span>◷</span><p><b>Pha tươi mỗi ngày</b><small>Trọn vẹn hương vị</small></p></div><i /><div><span>♧</span><p><b>Giao nhanh tận nơi</b><small>Tiện lợi cho bạn</small></p></div><i /><div><span>♡</span><p><b>Chạm là có cà phê</b><small>Đặt hàng thật dễ dàng</small></p></div></section>
-
-      <section className="menu-section" id="menu">
-        <div className="section-heading"><div><span className="eyebrow dark-eyebrow"><span className="eyebrow-line" /> ĐƯỢC YÊU THÍCH</span><h2>Chọn vị bạn <em>thương.</em></h2><p>Mỗi ly là một khoảnh khắc nhỏ đáng yêu trong ngày.</p></div><a className="text-link" href="#menu">Xem toàn bộ thực đơn <span>↗</span></a></div>
-        {products.length === 0 ? <div className="empty-menu">Hiện chưa có sản phẩm. BrewLite sẽ sớm trở lại với bạn!</div> : <div className="product-grid">{products.map((product, index) => <article className="product-card" key={product.id}>
-          <Link href={`/products/${product.id}`} className={`product-art product-art-${index % 4}`} aria-label={`Xem ${product.name}`}>
-            {product.imageUrl && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              className="product-photo"
-              src={product.imageUrl}
-              alt={product.name}
-              loading="lazy"
-              onError={(e) => { e.currentTarget.style.display = 'none'; }}
-            />
-          )}<span className="product-tag">{index === 0 ? 'BÁN CHẠY' : index === 5 ? 'ĐẶC SẢN' : index === 7 ? 'MỚI' : index % 3 === 2 ? 'ĐƯỢC YÊU THÍCH' : 'BREWLITE PICK'}</span><span className="product-illustration">{productArt[index % productArt.length]}</span><span className="product-art-label">BREWLITE <b>·</b> FRESH DAILY</span>
-          </Link>
-          <div className="product-info"><div className="product-title-row"><Link href={`/products/${product.id}`}><h3>{product.name}</h3></Link></div><p>{product.description || 'Hương vị cân bằng, thơm ngon vừa đủ.'}</p><div className="product-buy"><strong>{formatPrice(product.price)}</strong><Link href={`/products/${product.id}`} className="add-button" aria-label={`Chọn ${product.name}`}>+</Link></div></div>
-        </article>)}</div>}
+      <section className="fresh-promise" id="promise" aria-label="Cam kết chất lượng">
+        <div><span>✳</span><p><b>Hạt tuyển chọn</b><small>Chất lượng từ nguồn</small></p></div><i /><div><span>◷</span><p><b>Pha tươi mỗi ngày</b><small>Trọn vẹn hương vị</small></p></div><i /><div><span>♧</span><p><b>Nhận tại quầy</b><small>Không chờ đợi lâu</small></p></div><i /><div><span>♡</span><p><b>Đặt hàng dễ dàng</b><small>Chỉ vài thao tác</small></p></div>
       </section>
 
-      <footer className="site-footer"><Link href="/" className="brand footer-brand"><span className="brand-mark">b</span><span>Brew<span className="brand-light">Lite</span><small>COFFEE HOUSE</small></span></Link><span>Cà phê ngon, ngày thêm vui.</span><span>© 2025 BrewLite Coffee House</span></footer>
+      <section className="fresh-menu" id="menu">
+        <div className="fresh-menu-heading"><div><span className="fresh-eyebrow"><i /> THỰC ĐƠN BREWLITE</span><h2>Chọn vị bạn <em>yêu.</em></h2><p>Từ cà phê đậm đà đến trà thanh mát, luôn có một lựa chọn dành cho bạn.</p></div><label className="fresh-search"><span aria-hidden="true">⌕</span><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Tìm đồ uống yêu thích..." aria-label="Tìm đồ uống" /></label></div>
+        <div className="fresh-filters" role="group" aria-label="Lọc theo danh mục">{categories.map((item) => <button key={item} type="button" className={category === item ? 'selected' : ''} onClick={() => setCategory(item)}>{item}</button>)}</div>
+        {filteredProducts.length > 0 ? <div className="fresh-products">{filteredProducts.map((product, index) => <article className="fresh-product" key={product.id}>
+          <Link href={`/products/${product.id}`} className={`fresh-product-image image-tone-${index % 4}`} aria-label={`Xem ${product.name}`}>
+            {product.imageUrl ? <img src={product.imageUrl} alt={product.name} loading="lazy" onError={(event) => { event.currentTarget.style.display = 'none'; }} /> : <span className="fresh-product-art" aria-hidden="true">{productArt[index % productArt.length]}</span>}
+            <span className="fresh-product-tag">{index === 0 ? 'BÁN CHẠY' : index === 5 ? 'ĐẶC SẢN' : 'BREWLITE PICK'}</span><span className="fresh-product-label">{categoryFor(product.name)}</span>
+          </Link>
+          <div className="fresh-product-info"><div><Link href={`/products/${product.id}`}><h3>{product.name}</h3></Link><span className="fresh-product-rating">★ 4.9</span></div><p>{product.description || 'Hương vị cân bằng, thơm ngon vừa đủ.'}</p><div className="fresh-product-buy"><strong>{money(product.price)}</strong><Link href={`/products/${product.id}`} aria-label={`Chọn ${product.name}`} className="fresh-add">+</Link></div></div>
+        </article>)}</div> : <div className="fresh-empty"><span>⌕</span><h3>Chưa tìm thấy món phù hợp</h3><p>Thử từ khóa hoặc danh mục khác nhé.</p><button type="button" onClick={() => { setSearch(''); setCategory('Tất cả'); }}>Xem toàn bộ thực đơn</button></div>}
+      </section>
+
     </main>
   );
 }

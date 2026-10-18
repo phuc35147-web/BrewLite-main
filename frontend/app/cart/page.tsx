@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCartStore } from '@/store/cartStore';
 import { apiUrl } from '@/lib/api';
+import { mockProducts } from '@/lib/api';
 
 export default function CartPage() {
   const router = useRouter();
@@ -97,44 +98,32 @@ const response = await fetch(
   );
 
   return (
-    <main className="min-h-screen bg-gray-100 px-6 py-10">
-      <div className="mx-auto max-w-5xl">
-        <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-amber-900">
-            Giỏ hàng
-          </h1>
-
-          <Link
-            href="/"
-            className="text-amber-700 hover:underline"
-          >
-            ← Tiếp tục mua hàng
-          </Link>
-        </div>
+    <main className="container page-space">
+      <div className="page-title"><div className="eyebrow">GIỎ HÀNG</div><h1>Giỏ hàng của bạn</h1><p>{items.length} món ngon đang chờ bạn xác nhận</p></div>
 
         {items.length === 0 ? (
-          <div className="rounded-2xl bg-white p-10 text-center shadow">
-            <p className="text-lg text-gray-500">
+          <div className="empty large">
+            <p>
               Giỏ hàng đang trống.
             </p>
 
             <Link
               href="/"
-              className="mt-5 inline-block rounded-lg bg-amber-700 px-5 py-3 text-white"
+              className="btn btn-primary"
             >
               Xem menu
             </Link>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="cart-layout"><div className="cart-list">
             {items.map((item, index) => (
               <div
                 key={`${item.productId}-${item.size}-${index}`}
-                className="rounded-2xl bg-white p-5 shadow"
+                className="cart-item"
               >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="text-xl font-semibold text-gray-800">
+                <>
+                    {mockProducts.find((product) => product.id === item.productId)?.imageUrl ? <img src={mockProducts.find((product) => product.id === item.productId)?.imageUrl ?? ''} alt={item.name} /> : <div className="cart-placeholder">☕</div>}
+                    <div className="cart-item-info"><h2>
                       {item.name}
                     </h2>
 
@@ -149,13 +138,9 @@ const response = await fetch(
                         : 'Không có'}
                     </p>
 
-                    <p className="mt-2 font-medium text-amber-700">
-                      {formatPrice(item.price)}
-                    </p>
-                  </div>
+                    </div>
 
-                  <div className="flex flex-col items-end gap-3">
-  <div className="flex items-center gap-2">
+                  <div className="item-end"><strong>{formatPrice(item.price * item.quantity)}</strong><div className="quantity">
     <button
       type="button"
       onClick={() =>
@@ -166,12 +151,12 @@ const response = await fetch(
           item.quantity - 1,
         )
       }
-      className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 text-lg hover:bg-gray-100"
+      aria-label="Giảm số lượng"
     >
       −
     </button>
 
-    <span className="min-w-8 text-center font-semibold">
+    <span>
       {item.quantity}
     </span>
 
@@ -185,15 +170,11 @@ const response = await fetch(
           item.quantity + 1,
         )
       }
-      className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 text-lg hover:bg-gray-100"
+      aria-label="Tăng số lượng"
     >
       +
     </button>
   </div>
-
-  <p className="text-lg font-bold text-gray-800">
-    {formatPrice(item.price * item.quantity)}
-  </p>
 
   <button
     type="button"
@@ -204,26 +185,18 @@ const response = await fetch(
         item.toppings,
       )
     }
-    className="text-sm text-red-600 hover:underline"
+    className="remove-item"
   >
     Xóa
   </button>
-</div>
-                </div>
+ </div>
+                </>
               </div>
             ))}
 
-            <div className="rounded-2xl bg-white p-6 shadow">
-              <div className="flex justify-between text-xl font-bold">
-                <span>Tổng cộng</span>
-
-                <span className="text-amber-700">
-                  {formatPrice(totalPrice)}
-                </span>
-              </div>
-
+          </div><aside className="summary"><h2>Tóm tắt đơn hàng</h2><div className="summary-row"><span>Tạm tính</span><strong>{formatPrice(totalPrice)}</strong></div><div className="summary-row"><span>Giảm giá</span><strong>0đ</strong></div><div className="summary-note">♧ &nbsp; Nhận tại quầy<br/><small>Không tính phí giao hàng</small></div><div className="summary-total"><span>Tổng cộng</span><strong>{formatPrice(totalPrice)}</strong></div>
               {orderError && (
-                <div className="mt-4 rounded-lg bg-red-100 p-4 text-red-700">
+                <div className="error-note">
                   {orderError}
                 </div>
               )}
@@ -231,14 +204,12 @@ const response = await fetch(
               <button
   type="button"
   onClick={() => router.push('/checkout')}
-  className="mt-5 w-full rounded-xl bg-amber-700 px-6 py-4 text-lg font-semibold text-white transition hover:bg-amber-800"
+  className="btn btn-primary wide"
 >
-  Thanh toán
+  Tiến hành thanh toán&nbsp; ›
 </button>
-            </div>
-          </div>
+              <Link className="continue-link" href="/">Tiếp tục mua hàng</Link></aside></div>
         )}
-      </div>
     </main>
   );
 }
