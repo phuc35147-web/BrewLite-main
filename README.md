@@ -1095,3 +1095,14 @@ thì cần cập nhật README tương ứng.
 - Idempotency: kết quả thanh toán (cả thất bại) được lưu và trả lại khi gửi lại cùng key. Thử lại đơn lỗi phải dùng key mới.
 - Migration mới: `20261010000000_add_version_and_role` (chạy `npx prisma migrate deploy`).
 - Test tích hợp đồng thời (`orders.concurrent.spec.ts`) cần SQL Server đang chạy và biến `DB_*`; thiếu thì tự bỏ qua.
+
+
+---
+
+# Ghi chú cập nhật: khuyến mãi trên giao diện, ảnh sản phẩm, test
+
+- Trang `/checkout` có ô nhập mã khuyến mãi (`BREW10`). Giá giảm hiển thị trước khi thanh toán; trang xác nhận hiển thị tạm tính, khuyến mãi và điểm thưởng nhận được.
+- Ảnh sản phẩm nằm ở `frontend/public/images/` (4 ảnh mẫu). Nếu ảnh lỗi, giao diện tự quay về hình minh họa emoji.
+- `tedious` đã được khai báo trong `backend/package.json` (dùng bởi `init-db.mjs` và `seed.mjs`).
+- Test mới: `src/payments/payments.idempotency.spec.ts` (gửi lặp cùng Idempotency-Key trên DB thật) và `test/app.e2e-spec.ts` (e2e thật, thay cho test mẫu). Cả hai cùng `orders.concurrent.spec.ts` **chỉ chạy khi có SQL Server** (`DB_SERVER` được đặt); thiếu DB thì bị bỏ qua.
+- Tài liệu quy trình Scrum: `docs/SCRUM.md`.

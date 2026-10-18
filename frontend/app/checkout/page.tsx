@@ -23,6 +23,23 @@ export default function CheckoutPage() {
   const [isPaying, setIsPaying] = useState(false);
   const [error, setError] = useState('');
 
+  // Mã khuyến mãi (backend hiện hỗ trợ BREW10: giảm 10%, tối đa 20.000đ).
+  const [promoCode, setPromoCode] = useState('');
+  // Sau khi đơn đã được tạo thì khóa ô mã, vì giảm giá đã được tính vào đơn.
+  const [orderLocked, setOrderLocked] = useState(false);
+  type OrderInfo = { subtotal: number; discount: number; total: number };
+  const [orderInfo, setOrderInfo] = useState<OrderInfo | null>(null);
+  // Bản sao trong ref để hàm thanh toán (kể cả lần thử lại) đọc được giá trị mới nhất.
+  const orderInfoRef = useRef<OrderInfo | null>(null);
+
+  const promo = promoCode.trim().toUpperCase();
+  const promoValid = promo === 'BREW10';
+  const discountPreview = promoValid
+    ? Math.min(Math.floor(totalPrice * 0.1), 20000)
+    : 0;
+  const discount = orderInfo?.discount ?? discountPreview;
+  const payableTotal = orderInfo?.total ?? totalPrice - discountPreview;
+
   // Đơn đã tạo nhưng thanh toán lỗi: thử lại trên đơn cũ, tránh tạo đơn mới và trừ kho thêm.
   const pendingOrderId = useRef<number | null>(null);
   // Mỗi lần thử thanh toán dùng một Idempotency-Key riêng; bấm đúp cùng lần thử vẫn dùng chung key.
@@ -63,6 +80,7 @@ export default function CheckoutPage() {
               quantity: item.quantity,
               toppings: item.toppings,
             })),
+            ...(promo ? { promoCode: promo } : {}),
           }),
         });
 
@@ -85,6 +103,14 @@ export default function CheckoutPage() {
 
         orderId = orderData.orderId as number;
         pendingOrderId.current = orderId;
+        const info: OrderInfo = {
+          subtotal: orderData.subtotal,
+          discount: orderData.discount,
+          total: orderData.total,
+        };
+        orderInfoRef.current = info;
+        setOrderInfo(info);
+        setOrderLocked(true);
       }
 
       // BƯỚC 2: IDEMPOTENCY KEY cho lần thử hiện tại
@@ -124,8 +150,10 @@ export default function CheckoutPage() {
         );
       }
 
+      const summary = orderInfoRef.current;
       pendingOrderId.current = null;
       attemptKey.current = null;
+      orderInfoRef.current = null;
 
       // Chỉ xóa giỏ sau khi PAID
       clearCart();
@@ -139,6 +167,8 @@ export default function CheckoutPage() {
           amount: paymentData.amount,
           method: paymentData.method,
           loyaltyEarned: paymentData.loyaltyEarned,
+          subtotal: summary?.subtotal,
+          discount: summary?.discount ?? 0,
         }),
       );
 
@@ -197,9 +227,56 @@ export default function CheckoutPage() {
               Tổng tiền
             </h2>
 
+            <div className="mt-2 space-y-1 text-gray-600">
+              <div className="flex justify-between">
+                <span>Tạm tính</span>
+                <span>{formatPrice(orderInfo?.subtotal ?? totalPrice)}</span>
+              </div>
+
+              {discount > 0 && (
+                <div className="flex justify-between text-green-700">
+                  <span>Khuyến mãi {promo}</span>
+                  <span>-{formatPrice(discount)}</span>
+                </div>
+              )}
+            </div>
+
             <p className="mt-2 text-3xl font-bold text-amber-700">
-              {formatPrice(totalPrice)}
+              {formatPrice(payableTotal)}
             </p>
+          </div>
+
+          <div className="mt-8">
+            <h2 className="text-lg font-semibold">
+              Mã khuyến mãi
+            </h2>
+
+            <input
+              type="text"
+              value={promoCode}
+              onChange={(e) => setPromoCode(e.target.value)}
+              disabled={orderLocked || isPaying}
+              placeholder="Nhập mã, ví dụ BREW10"
+              className="mt-3 w-full rounded-xl border p-3 uppercase disabled:bg-gray-100"
+            />
+
+            {orderLocked && (
+              <p className="mt-2 text-sm text-gray-500">
+                Đơn hàng đã được tạo, không thể đổi mã khuyến mãi.
+              </p>
+            )}
+
+            {!orderLocked && promo && !promoValid && (
+              <p className="mt-2 text-sm text-red-600">
+                Mã khuyến mãi không hợp lệ.
+              </p>
+            )}
+
+            {!orderLocked && promoValid && (
+              <p className="mt-2 text-sm text-green-700">
+                Đã áp dụng BREW10: giảm 10%, tối đa 20.000đ.
+              </p>
+            )}
           </div>
 
           <div className="mt-8">
@@ -237,12 +314,12 @@ export default function CheckoutPage() {
           <button
             type="button"
             onClick={handlePayment}
-            disabled={isPaying}
+            disabled={isPaying || (!orderLocked && promo !== '' && !promoValid)}
             className="mt-8 w-full rounded-xl bg-amber-700 px-6 py-4 text-lg font-semibold text-white transition hover:bg-amber-800 disabled:cursor-not-allowed disabled:bg-gray-400"
           >
             {isPaying
               ? 'Đang xử lý thanh toán...'
-              : 'Xác nhận thanh toán'}
+              : `Xác nhận thanh toán ${formatPrice(payableTotal)}`}
           </button>
 
           {error && (

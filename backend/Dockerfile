@@ -6,6 +6,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 
+COPY tsconfig*.json nest-cli.json ./
 COPY prisma ./prisma
 RUN npx prisma generate
 
@@ -26,6 +27,7 @@ COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
+COPY prisma.config.ts ./prisma.config.ts
 COPY init-db.mjs seed.mjs docker-entrypoint.sh ./
 
 RUN sed -i 's/\r$//' docker-entrypoint.sh && chmod +x docker-entrypoint.sh

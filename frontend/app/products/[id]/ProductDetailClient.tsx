@@ -22,6 +22,7 @@ export default function ProductDetailClient({ id }: { id: string }) {
   const [error, setError] = useState('');
   const [size, setSize] = useState('M');
   const [toppings, setToppings] = useState<string[]>([]);
+  const [imgOk, setImgOk] = useState(true);
   const addItem = useCartStore((state) => state.addItem);
   const cartItems = useCartStore((state) => state.items);
   const cartItemCount = cartItems.reduce((total, item) => total + item.quantity, 0);
@@ -102,8 +103,9 @@ export default function ProductDetailClient({ id }: { id: string }) {
     );
   };
 
+  const artEmojis = ['☕', '🧊', '🥛', '🍑', '🍶', '🧂', '☕', '🍵', '🧋', '🍯', '🪷', '🍫'];
   const artIndex = product ? (product.id - 1) % 4 : 0;
-  const art = ['☕', '🧊', '🥛', '🍑'][artIndex];
+  const art = product ? artEmojis[(product.id - 1) % artEmojis.length] : '☕';
 
   return (
     <main className="storefront product-page">
@@ -119,7 +121,11 @@ export default function ProductDetailClient({ id }: { id: string }) {
         <div className="breadcrumbs"><Link href="/">Trang chủ</Link><span>›</span><Link href="/#menu">Thực đơn</Link><span>›</span><span>{loading ? 'Đang tải...' : product?.name || 'Sản phẩm'}</span></div>
         {loading ? <div className="detail-loading"><span className="loading-cup">☕</span><p>Đang chuẩn bị sản phẩm cho bạn...</p></div> : error || !product ? <div className="detail-error"><span>☕</span><h1>Chưa tìm thấy món này</h1><p>{error || 'Sản phẩm hiện không khả dụng.'}</p><Link href="/" className="primary-cta">Quay lại thực đơn <span>↗</span></Link></div> : <>
           <div className="detail-layout">
-            <section className={`detail-visual product-art-${artIndex}`} aria-label={`Hình minh họa ${product.name}`}>
+            <section className={`detail-visual product-art-${artIndex}${product.imageUrl && imgOk ? ' has-photo' : ''}`} aria-label={`Hình minh họa ${product.name}`}>
+              {product.imageUrl && imgOk && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img className="detail-photo" src={product.imageUrl} alt={product.name} onError={() => setImgOk(false)} />
+              )}
               <span className="detail-badge">BREWLITE SIGNATURE</span><span className="detail-orbit" /><span className="detail-drink">{art}</span><span className="detail-visual-name">BrewLite <b>·</b> fresh daily</span><span className="detail-visual-spark">✳</span>
             </section>
             <section className="detail-content">
